@@ -12,4 +12,5 @@ public class LoanApprovedEvent {
     private Long userId;
     private String userEmail;
     private Double amount;
+    private Long approvedByEmployeeId;
 }

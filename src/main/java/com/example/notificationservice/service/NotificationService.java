@@ -17,14 +17,11 @@ public interface NotificationService {
 
     void processUserRegisteredEvent(UserRegisteredEvent event);
 
-     void processAccountCreatedEvent(AccountCreatedEvent event);
+    void processAccountCreatedEvent(AccountCreatedEvent event);
 
     void processAccountApprovedEvent(AccountApprovedEvent event);
-
-    void processTransactionEvent(TransactionEvent event);
-
+     void processTransactionEvent(TransactionEvent event);
     void processLoanAppliedEvent(LoanAppliedEvent event);
-
     void processLoanApprovedEvent(LoanApprovedEvent event);
 
 

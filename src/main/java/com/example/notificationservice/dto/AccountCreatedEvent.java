@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountCreatedEvent {
-    private Long accountId;
     private Long userId;
-    private String userEmail;
+    private String email;
     private String accountNumber;
+    private Long accountId;
 }

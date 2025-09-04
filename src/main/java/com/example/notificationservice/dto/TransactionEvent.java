@@ -12,7 +12,7 @@ public class TransactionEvent {
     private Long accountId;
     private Long userId;
     private String userEmail;
+    private String type;        // DEPOSIT, WITHDRAW, TRANSFER
     private Double amount;
-    private String type;  // "CREDIT" or "DEBIT"
     private String description;
 }
