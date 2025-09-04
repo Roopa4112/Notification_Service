@@ -44,8 +44,8 @@ public class NotificationConsumerImpl implements NotificationConsumer {
 //        notificationService.processUserRegisteredEvent(userRegisteredEvent);
 //    }
 
-//
-    // 2️⃣ Account Created
+
+     //2️⃣ Account Created
     @KafkaListener(topics = "account-created-topic",
             groupId = "notification-service")
     public void consumeAccountCreated(String jsonEvent) {
@@ -85,13 +85,14 @@ public class NotificationConsumerImpl implements NotificationConsumer {
 
     // 5️⃣ Loan Approved
     @KafkaListener(topics = "loan-approved-topic", groupId = "notification-service")
-    public void consumeLoanApproved(String jsonEvent) {
+    public void consumeLoanApproved(String jsonEvent) throws JsonProcessingException {
         try {
             LoanApprovedEvent event = objectMapper.readValue(jsonEvent, LoanApprovedEvent.class);
             System.out.println("Received LoanApprovedEvent: " + event);
             notificationService.processLoanApprovedEvent(event);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            // throw new RuntimeException(e);
         }
     }
 

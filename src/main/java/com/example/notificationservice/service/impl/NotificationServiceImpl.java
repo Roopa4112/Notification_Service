@@ -1,3 +1,4 @@
+
 package com.example.notificationservice.service.impl;
 
 import com.example.notificationservice.dto.*;
@@ -24,7 +25,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final RestTemplate restTemplate;  // ✅ inject here
 
     // URL of User Service (adjust to your actual endpoint)
-    private static final String USER_SERVICE_URL = "http://localhost:8081/users";
+    //private static final String USER_SERVICE_URL = "http://localhost:8081/users";
 
     @Override
     public Notification sendNotification(Notification notification) {
@@ -66,28 +67,54 @@ public class NotificationServiceImpl implements NotificationService {
     public List<Notification> getNotificationsByUserId(Long userId) {
         return notificationRepository.findByUserId(userId);
     }
+//    @Override
+//    public void processUserRegisteredEvent(UserRegisteredEvent event) {
+//        Notification notification = new Notification();
+//        notification.setUserId(event.getUserId());
+//        notification.setEmail(getUserEmail(event.getUserId())); // fetch via REST call to UserService
+//        notification.setSubject("🎉 Welcome to Our Bank");
+//        notification.setMessage("Hello " + event.getName() +
+//                ",\n\nYour user account has been created successfully.\n" +
+//                "Next step: Open your bank account to start using our services.");
+//
+//        sendWelcomeNotification(notification); // this method already calls EmailService
+//    }
     @Override
     public void processUserRegisteredEvent(UserRegisteredEvent event) {
         Notification notification = new Notification();
         notification.setUserId(event.getUserId());
-        notification.setEmail(getUserEmail(event.getUserId())); // fetch via REST call to UserService
+        notification.setEmail(event.getEmail()); // ✅ use directly
         notification.setSubject("🎉 Welcome to Our Bank");
-        notification.setMessage("Hello " + event.getName() +
-                ",\n\nYour user account has been created successfully.\n" +
-                "Next step: Open your bank account to start using our services.");
+        notification.setMessage("Dear " + event.getName() + ",\n\n"
+                + "We are delighted to welcome you to the [Your Bank Name] family! "
+                + "Your user account has been successfully created. We are excited to have you on board.\n\n"
+                + "Your account gives you access to a suite of secure and convenient financial services.\n\n"
+                + "What's next?\n\n"
+                + "To get started, please log in to your account and complete the application to open your first bank account. You can do this by following the link below:\n\n"
+                + "[Link to account creation page, e.g., https://yourbank.com/open-account]\n\n"
+                + "If you have any questions, please do not hesitate to contact our customer support team at [Support Email Address] or by phone at [Support Phone Number].\n\n"
+                + "Thank you for choosing [Your Bank Name]. We look forward to serving you.\n\n"
+                + "Sincerely,\n"
+                + "The [Your Bank Name] Team.");
 
-        sendWelcomeNotification(notification); // this method already calls EmailService
+        sendWelcomeNotification(notification);
     }
 
-    @Override
+//    @Override
     public void processAccountCreatedEvent(AccountCreatedEvent event) {
         Notification notification = new Notification();
         notification.setUserId(event.getUserId());
-        notification.setEmail(getUserEmail(event.getUserId())); // ✅ fetch directly
+        notification.setEmail(event.getEmail()); // ✅ use directly
         notification.setSubject("Account Request Submitted");
-        notification.setMessage("Hello, your account request (Number: " + event.getAccountNumber() +
-                ", ID: " + event.getAccountId() + ") has been submitted successfully. " +
-                "It is currently waiting for manager approval.");
+        notification.setMessage("Dear Valued Customer,\n\n"
+                + "Thank you for your application to open a bank account with us. We are pleased to confirm that your request has been successfully submitted and is now under review.\n\n"
+                + "For your records, the details of your application are as follows:\n"
+                + "Account Number: " + event.getAccountNumber() + "\n"
+                + "Reference ID: " + event.getAccountId() + "\n\n"
+                + "Our team is working diligently to process your application. You will receive a separate notification via email once a decision has been made by the manager.\n\n"
+                + "Thank you for your patience and for choosing [Your Bank Name].\n\n"
+                + "Sincerely,\n"
+                + "The [Your Bank Name] Team");
         sendNotification(notification);
     }
 
@@ -95,21 +122,25 @@ public class NotificationServiceImpl implements NotificationService {
     public void processAccountApprovedEvent(AccountApprovedEvent event) {
         Notification notification = new Notification();
         notification.setUserId(event.getUserId());
-        notification.setEmail(getUserEmail(event.getUserId())); // ✅ fetch directly
-        notification.setSubject("Account Approved");
-        notification.setMessage("Congratulations! Your account with ID: " + event.getAccountId() +
-                " has been approved successfully.");
+        notification.setEmail(event.getEmail()); // ✅ use directly        notification.setSubject("Account Approved");
+        notification.setMessage("Dear Valued Customer,\n\n"
+                + "We are pleased to inform you that your account application has been approved. Your new account is now active.\n\n"
+                + "Account Number: " + event.getAccountNumber() + "\n"
+                + "Reference ID: " + event.getAccountId() + "\n\n"
+                + "You can now log in to your dashboard to get started with our services.\n\n"
+                + "Sincerely,\n"
+                + "The [Your Bank Name] Team");
         sendNotification(notification);
     }
 
+
     @Override
     public void processTransactionEvent(TransactionEvent event) {
-        Notification notification = new Notification();
-        notification.setUserId(event.getUserId());
-        notification.setEmail(getUserEmail(event.getUserId())); // ✅ fetch directly
-
         String subject;
         String message;
+        Notification notification = new Notification();
+        notification.setUserId(event.getUserId());
+        notification.setEmail(event.getUserEmail()); // ✅ use directly        String message;
 
         switch (event.getType()) {
             case "DEPOSIT":
@@ -148,12 +179,18 @@ public class NotificationServiceImpl implements NotificationService {
     public void processLoanAppliedEvent(LoanAppliedEvent event) {
         Notification notification = new Notification();
         notification.setUserId(event.getUserId());
-        notification.setEmail(getUserEmail(event.getUserId())); // ✅ fetch directly
+        notification.setEmail(event.getUserEmail()); // ✅ use directly        notification.setSubject("Your Loan Has Been Approved");
         notification.setSubject("Your Loan Application Has Been Submitted");
 
         notification.setMessage(String.format(
-                "Dear Customer,\n\nYour loan application for amount ₹%.2f has been submitted " +
-                        "and is pending approval.\n\nLoan ID: %d\n\nThank you for choosing our bank.",
+                "Dear Valued Customer,\n\n" +
+                        "Thank you for submitting your loan application with [Your Bank Name]. We are pleased to confirm that we have received your request for a loan of ₹%.2f.\n\n" +
+                        "Your application has been assigned the following ID for your records:\n" +
+                        "Loan ID: %d\n\n" +
+                        "Our team is now carefully reviewing your application. We will contact you via email within [e.g., 2-3 business days] to provide you with an update on your status.\n\n" +
+                        "We appreciate your patience and look forward to assisting you.\n\n" +
+                        "Sincerely,\n" +
+                        "The [Your Bank Name] Team",
                 event.getAmount(), event.getLoanId()
         ));
 
@@ -164,192 +201,23 @@ public class NotificationServiceImpl implements NotificationService {
     public void processLoanApprovedEvent(LoanApprovedEvent event) {
         Notification notification = new Notification();
         notification.setUserId(event.getUserId());
-        notification.setEmail(getUserEmail(event.getUserId())); // ✅ fetch directly
-        notification.setSubject("Your Loan Has Been Approved");
+        notification.setEmail(event.getUserEmail()); // ✅ use directly        notification.setSubject("Your Loan Has Been Approved");
 
         notification.setMessage(String.format(
-                "Dear Customer,\n\nYour loan application has been approved.\n\n" +
-                        "Loan ID: %d\nApproved Amount: ₹%.2f\n\nThe sanctioned amount will be " +
-                        "disbursed shortly.\n\nThank you for banking with us.",
+                "Dear Valued Customer,\n\n" +
+                        "Great news! We are pleased to inform you that your loan application has been successfully approved.\n\n" +
+                        "**Loan Details:**\n" +
+                        "Loan ID: %d\n" +
+                        "Approved Amount: ₹%.2f\n\n" +
+                        "The sanctioned amount will be disbursed to your account within [e.g., 24 hours]. You will receive a separate notification once the funds have been credited.\n\n" +
+                        "Thank you for banking with [Your Bank Name]. We look forward to supporting your financial goals.\n\n" +
+                        "Sincerely,\n" +
+                        "The [Your Bank Name] Team",
                 event.getLoanId(), event.getAmount()
         ));
 
         sendNotification(notification);
     }
 
-    private String getUserEmail(Long userId) {
-        // Assuming your UserService has an endpoint: GET /api/users/{id}/email
-        return restTemplate.getForObject(
-                USER_SERVICE_URL + "/" + userId + "/email",
-                String.class
-        );
-    }
 
-
-
-
-
-
-
-//
-//    @Override
-//    public void processUserRegisteredEvent(UserRegisteredEvent event) {
-//        Notification notification = new Notification();
-//        notification.setUserId(event.getUserId());
-//        notification.setEmail(event.getEmail());
-//        notification.setSubject("Welcome to Our Bank");
-//        notification.setMessage("Hello " + event.getName() + ", you have successfully created the user account in our bank next step is to open a Account");
-//        sendWelcomeNotification(notification);
-//    }
-//    @Override
-//    public void processAccountCreatedEvent(AccountCreatedEvent event) {
-//        Notification notification = new Notification();
-//        notification.setUserId(event.getUserId());
-//        notification.setEmail(event.getUserEmail());
-//        notification.setSubject("Account Request Submitted");
-//        notification.setMessage("Hello, your account request (Number: " + event.getAccountNumber() +
-//                ", ID: " + event.getAccountId() + ") has been submitted successfully. " +
-//                "It is currently waiting for manager approval.");
-//        sendNotification(notification);
-//    }
-//
-//    @Override
-//    public void processAccountApprovedEvent(AccountApprovedEvent event) {
-//        Notification notification = new Notification();
-//        notification.setUserId(event.getUserId());
-//        notification.setEmail(event.getUserEmail());
-//        notification.setSubject("Account Approved");
-//        notification.setMessage("Congratulations! Your account with ID: " + event.getAccountId() +
-//                " has been approved successfully.");
-//        sendNotification(notification);
-//    }
-//
-//    @Override
-////    public void processTransactionEvent(TransactionEvent event) {
-////        Notification notification = new Notification();
-////        notification.setUserId(event.getUserId());
-////        notification.setEmail(event.getUserEmail());
-////        notification.setSubject("Transaction Alert");
-////        notification.setMessage("Your account " + event.getAccountId() + " has a " + event.getType() +
-////                " transaction of amount " + event.getAmount() + ". Description: " + event.getDescription() +
-////                ". Transaction ID: " + event.getTransactionId());
-////        sendNotification(notification);
-////    }
-//
-//    public void processTransactionEvent(TransactionEvent event) {
-//        Notification notification = new Notification();
-//        notification.setUserId(event.getUserId());
-//        notification.setEmail(getUserEmail(event.getUserId())); // ✅ fetch directly
-//
-//        String subject;
-//        String message;
-//
-//        switch (event.getType()) {
-//            case "DEPOSIT":
-//                subject = "Deposit Alert - Account " + event.getAccountId();
-//                message = "Your account " + event.getAccountId() +
-//                        " has been credited with ₹" + event.getAmount() +
-//                        ". Description: " + event.getDescription();
-//                break;
-//
-//            case "WITHDRAW":
-//                subject = "Withdrawal Alert - Account " + event.getAccountId();
-//                message = "Your account " + event.getAccountId() +
-//                        " has been debited with ₹" + event.getAmount() +
-//                        ". Description: " + event.getDescription();
-//                break;
-//
-//            case "TRANSFER_IN":
-//                subject = "Fund Transfer Alert - Amount Credited";
-//                message = "You have received ₹" + event.getAmount() +
-//                        " in your account " + event.getAccountId();
-//                break;
-//
-//            case "TRANSFER_OUT":
-//                subject = "Fund Transfer Alert - Amount Debited";
-//                message = "You have transferred ₹" + event.getAmount() +
-//                        " from your account " + event.getAccountId();
-//                break;
-//
-//            default:
-//                subject = "Transaction Alert";
-//                message = "A transaction has occurred on your account.";
-//        }
-//
-//        notification.setSubject(subject);
-//        notification.setMessage(message);
-//        sendNotification(notification);
-//    }
-//
-//    @Override
-////    public void processLoanAppliedEvent(LoanAppliedEvent event) {
-////        Notification notification = new Notification();
-////        notification.setUserId(event.getUserId());
-////        notification.setEmail(event.getUserEmail());
-////        notification.setSubject("Loan Application Submitted");
-////        notification.setMessage("Your loan application for amount " + event.getAmount() +
-////                " has been submitted successfully and is pending approval. Loan ID: " + event.getLoanId());
-////        sendNotification(notification);
-////    }
-//    public void processLoanAppliedEvent(LoanAppliedEvent event) {
-//        Notification notification = new Notification();
-//        notification.setUserId(event.getUserId());
-//        notification.setEmail(event.getUserEmail());
-//        notification.setSubject("Your Loan Application Has Been Successfully Submitted");
-//
-//        String message = String.format(
-//                "Dear Customer,\n\n" +
-//                        "We are pleased to inform you that your loan application has been successfully submitted and is currently pending approval.\n\n" +
-//                        "Loan Details:\n" +
-//                        "• Loan ID: %d\n" +
-//                        "• Loan Amount: %.2f\n\n" +
-//                        "Our team will carefully review your application, and you will be notified once a decision has been made.\n\n" +
-//                        "Thank you for choosing our banking services.\n\n" +
-//                        "Warm regards,\n" +
-//                        "Banking Services Team",
-//                event.getLoanId(),
-//                event.getAmount()
-//        );
-//
-//        notification.setMessage(message);
-//        sendNotification(notification);
-//    }
-//
-//
-//    @Override
-//    public void processLoanApprovedEvent(LoanApprovedEvent event) {
-//        Notification notification = new Notification();
-//        notification.setUserId(event.getUserId());
-//        notification.setEmail(event.getUserEmail());
-//        notification.setSubject("Your Loan Application Has Been Approved");
-//
-//        String message = String.format(
-//                "Dear Customer,\n\n" +
-//                        "We are pleased to inform you that your loan application has been successfully approved.\n\n" +
-//                        "Loan Details:\n" +
-//                        "• Loan ID: %s\n" +
-//                        "• Approved Amount: %.2f\n\n" +
-//                        "The sanctioned loan amount will be disbursed to your account shortly. Please keep this Loan ID for your future reference.\n\n" +
-//                        "If you have any questions or require further assistance, feel free to contact our support team.\n\n" +
-//                        "Thank you for choosing our banking services.\n\n" +
-//                        "Warm regards,\n" +
-//                        "Banking Services Team",
-//                event.getLoanId(),
-//                event.getAmount()
-//        );
-//
-//        notification.setMessage(message);
-//        sendNotification(notification);
-//    }
-//    private String getUserEmail(Long userId) {
-//        // Assuming your UserService has an endpoint: GET /api/users/{id}/email
-//        return restTemplate.getForObject(
-//                USER_SERVICE_URL + "/" + userId + "/email",
-//                String.class
-//        );
-//    }
 }
-
-
-
-
